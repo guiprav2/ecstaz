@@ -442,25 +442,29 @@ export default class Ecstaz {
       let height = scope.formatBarEl.offsetHeight || 0;
       let startX = event.clientX;
       let startY = event.clientY;
-      let startLeft = scope.formatBar.left;
-      let startTop = scope.formatBar.top;
+      let startRelativeLeft = scope.formatBar.left;
+      let startRelativeTop = scope.formatBar.top;
+      let startAbsoluteLeft = host.left + startRelativeLeft;
+      let startAbsoluteTop = host.top + startRelativeTop;
+      let offsetX = event.clientX - startAbsoluteLeft;
+      let offsetY = event.clientY - startAbsoluteTop;
       scope.formatBarLocked = true;
       let handleMove = e => {
         e.preventDefault();
-        let dx = e.clientX - startX;
-        let dy = e.clientY - startY;
-        let left = startLeft + dx;
-        let top = startTop + dy;
-        let viewportWidth = window.innerWidth || host.width;
-        let viewportHeight = window.innerHeight || host.height;
-        let minLeft = -host.left + 8;
-        let maxLeft = viewportWidth - host.left - width - 8;
-        let minTop = -host.top - height;
-        let maxTop = viewportHeight - host.top - height - 8;
-        if (left < minLeft) left = minLeft;
-        if (left > maxLeft) left = maxLeft;
-        if (top < minTop) top = minTop;
-        if (top > maxTop) top = maxTop;
+        let viewportWidth = window.innerWidth || document.documentElement.clientWidth || host.width;
+        let viewportHeight = window.innerHeight || document.documentElement.clientHeight || host.height;
+        let absoluteLeft = e.clientX - offsetX;
+        let absoluteTop = e.clientY - offsetY;
+        let minAbsoluteLeft = 8;
+        let maxAbsoluteLeft = viewportWidth - width - 8;
+        let minAbsoluteTop = 8;
+        let maxAbsoluteTop = viewportHeight - height - 8;
+        if (absoluteLeft < minAbsoluteLeft) absoluteLeft = minAbsoluteLeft;
+        if (absoluteLeft > maxAbsoluteLeft) absoluteLeft = maxAbsoluteLeft;
+        if (absoluteTop < minAbsoluteTop) absoluteTop = minAbsoluteTop;
+        if (absoluteTop > maxAbsoluteTop) absoluteTop = maxAbsoluteTop;
+        let left = absoluteLeft - host.left;
+        let top = absoluteTop - host.top;
         scope.formatBar = { ...scope.formatBar, left, top, visible: true };
         d.update();
       };
@@ -1527,16 +1531,14 @@ export default class Ecstaz {
       let host = scope.paletteHostEl.getBoundingClientRect();
       if (scope.formatBarLocked) return;
       try {
-        let left = host.width / 2;
+        let viewportWidth = window.innerWidth || document.documentElement.clientWidth || host.width;
         let width = scope.formatBarEl?.offsetWidth || 0;
-        if (width) {
-          left -= width / 2;
-          let maxLeft = host.width - width;
-          if (maxLeft < 0) maxLeft = 0;
-          if (left < 0) left = 0;
-          if (left > maxLeft) left = maxLeft;
+        if (!width) {
+          requestAnimationFrame(() => this.actions.positionFormatBar());
         }
-        let top = -64;
+        let globalLeft = viewportWidth / 2 - width / 2;
+        let left = globalLeft - host.left + 224;
+        let top = -60;
         scope.formatBar = { visible: true, left, top };
       } catch (err) {
         scope.formatBar = { visible: false, left: 0, top: 0 };

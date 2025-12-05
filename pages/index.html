@@ -269,7 +269,7 @@
                 <input
                   wf-if="state.ecstaz.editable"
                   type="text"
-                  class="w-full bg-transparent leading-tight font-light text-neutral-100 focus:outline-none border-none focus:ring-0 px-0 placeholder:italic text-3xl"
+                  class="w-full bg-transparent leading-tight font-light text-neutral-100 focus:outline-none border-none focus:ring-0 px-0 placeholder:italic text-2xl"
                   placeholder="Click here to enter a page heading"
                   wf-value="state.ecstaz.activePage.heading"
                   wf-oninput="post('ecstaz.updateHeading', event)"
@@ -279,7 +279,7 @@
                 />
                 <div
                   wf-if="!state.ecstaz.editable &amp;&amp; state.ecstaz.activePage.heading"
-                  class="leading-tight font-light text-3xl"
+                  class="leading-tight font-light text-2xl"
                 >
                   {{state.ecstaz.activePage.heading}}
                 </div>
@@ -444,45 +444,37 @@
                     H3
                   </button>
                   <button
-                    class="text-sm px-2 py-1 rounded-full border border-transparent hover:border-neutral-700 hover:bg-neutral-900"
+                    class="text-sm px-2 py-1 rounded-full border border-transparent hover:border-neutral-700 hover:bg-neutral-900 nf nf-md-format_list_bulleted_square"
                     wf-class="{{state.ecstaz.editor?.isActive('bulletList') ? 'border-neutral-700 bg-neutral-900/70' : ''}}"
                     wf-onclick="post('ecstaz.command', 'ul')"
                     wf-onmousedown="post('ecstaz.formatBarKeep', event)"
                     type="button"
                     value=""
-                  >
-                    •
-                  </button>
+                  ></button>
                   <button
-                    class="text-sm px-2 py-1 rounded-full border border-transparent hover:border-neutral-700 hover:bg-neutral-900"
+                    class="text-sm px-2 py-1 rounded-full border border-transparent hover:border-neutral-700 hover:bg-neutral-900 nf-fa-list_ol nf"
                     wf-class="{{state.ecstaz.editor?.isActive('orderedList') ? 'border-neutral-700 bg-neutral-900/70' : ''}}"
                     wf-onclick="post('ecstaz.command', 'ol')"
                     wf-onmousedown="post('ecstaz.formatBarKeep', event)"
                     type="button"
                     value=""
-                  >
-                    1.
-                  </button>
+                  ></button>
                   <button
-                    class="text-sm px-2 py-1 rounded-full border border-transparent hover:border-neutral-700 hover:bg-neutral-900"
+                    class="text-sm px-2 py-1 rounded-full border border-transparent hover:border-neutral-700 hover:bg-neutral-900 nf nf-cod-quote"
                     wf-class="{{state.ecstaz.editor?.isActive('blockquote') ? 'border-neutral-700 bg-neutral-900/70' : ''}}"
                     wf-onclick="post('ecstaz.command', 'quote')"
                     wf-onmousedown="post('ecstaz.formatBarKeep', event)"
                     type="button"
                     value=""
-                  >
-                    ❝
-                  </button>
+                  ></button>
                   <button
-                    class="text-sm px-2 py-1 rounded-full border border-transparent hover:border-neutral-700 hover:bg-neutral-900"
+                    class="text-sm px-2 py-1 rounded-full border border-transparent hover:border-neutral-700 hover:bg-neutral-900 nf nf-cod-code"
                     wf-class="{{state.ecstaz.editor?.isActive('codeBlock') ? 'border-neutral-700 bg-neutral-900/70' : ''}}"
                     wf-onclick="post('ecstaz.command', 'code')"
                     wf-onmousedown="post('ecstaz.formatBarKeep', event)"
                     type="button"
                     value=""
-                  >
-                    { }
-                  </button>
+                  ></button>
                   <button
                     class="text-sm px-2 py-1 rounded-full border border-transparent hover:border-neutral-700 hover:bg-neutral-900"
                     wf-onclick="post('ecstaz.command', 'hr')"
