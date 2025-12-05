@@ -270,6 +270,17 @@ class App {
     let path = 'pages/' + parts.join('/');
     let templ = templates[path];
     if (!templ) {
+      let storedRaw = localStorage.getItem('ecz:data');
+      if (storedRaw) {
+        try {
+          let stored = JSON.parse(storedRaw);
+          if (stored && stored.pages && stored.pages[path]) {
+            templ = templates['pages/index.html'];
+          }
+        } catch (err) {}
+      }
+    }
+    if (!templ) {
       templ = templates['pages/404.html'];
     }
     if (!templ) {

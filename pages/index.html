@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title></title>
+    <title>ecstaz</title>
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1"
@@ -20,22 +20,280 @@
     style="display: none"
   >
     <div
-      class="flex justify-center items-center gap-4"
+      class="flex flex-col flex-1"
       wf-onattach="post('ecstaz.init')"
+      wf-ondetach="post('ecstaz.teardown')"
     >
-      <button
-        value="ok"
-        class="px-3 py-1 bg-neutral-950 text-neutral-50 hover:bg-neutral-800 transition-colors border border-transparent"
-        wf-onclick="showModal('ConfirmationDialog')"
-      >
-        Confirmation Test</button
-      ><button
-        value="ok"
-        class="px-3 py-1 bg-neutral-950 text-neutral-50 hover:bg-neutral-800 transition-colors border border-transparent"
-        wf-onclick="showModal('NewPageDialog')"
-      >
-        New Page Test
-      </button>
+      <div class="flex-1 bg-neutral-950">
+        <style>
+          /* Soft revert: restore text elements, but don’t revert everything */
+
+          .prose {
+            /* Reset text flow without re-enabling form controls/outlines */
+            all: unset;
+            display: block; /* all: unset removes block-level behavior */
+            font-size: revert;
+            line-height: revert;
+            color: inherit;
+          }
+
+          .prose * {
+            all: unset;
+            display: revert;
+            font-size: revert;
+            line-height: revert;
+            color: inherit;
+          }
+
+          /* === BASIC TYPOGRAPHY === */
+
+          .prose p,
+          .prose ul,
+          .prose ol,
+          .prose blockquote,
+          .prose pre,
+          .prose table,
+          .prose h1,
+          .prose h2,
+          .prose h3,
+          .prose h4,
+          .prose h5,
+          .prose h6 {
+            margin-block: 1em;
+          }
+
+          /* Headings */
+          .prose h1 {
+            font-size: 2em;
+            font-weight: bold;
+          }
+          .prose h2 {
+            font-size: 1.5em;
+            font-weight: bold;
+          }
+          .prose h3 {
+            font-size: 1.25em;
+            font-weight: bold;
+          }
+
+          /* Lists */
+          .prose ul {
+            list-style: disc;
+            padding-left: 1.5em;
+            margin-block: 1em;
+          }
+
+          .prose ol {
+            list-style: decimal;
+            padding-left: 1.5em;
+            margin-block: 1em;
+          }
+
+          /* Tighten li spacing */
+          .prose li {
+            margin: 0.25em 0; /* much tighter than default */
+          }
+
+          .prose li > p {
+            margin-block: 0.1em; /* or 0 for ultra-tight */
+          }
+
+          /* Links */
+          .prose a {
+            text-decoration: underline;
+          }
+
+          /* Blockquotes */
+          .prose blockquote {
+            padding-left: 1em;
+            border-left: 4px solid #ccc;
+            color: #666;
+          }
+
+          /* Images */
+          .prose img {
+            max-width: 100%;
+            height: auto;
+          }
+
+          /* === IMPORTANT: Fix contenteditable outline === */
+          .prose [contenteditable]:focus,
+          [contenteditable].prose:focus {
+            outline: none !important; /* suppress UA outline safely */
+          }
+        </style>
+        <div
+          wf-if="state.ecstaz.ready"
+          class="max-w-5xl mx-auto px-6 py-12 flex flex-col gap-10 text-neutral-100"
+        >
+          <div class="flex flex-col gap-6">
+            <div class="flex items-start justify-between gap-6 flex-wrap">
+              <div class="flex-1 min-w-[250px]">
+                <div
+                  class="text-xs tracking-[0.65em] uppercase text-neutral-500"
+                >
+                  ECSTAZ
+                </div>
+                <div class="mt-4 text-4xl sm:text-5xl font-light leading-tight">
+                  {{state.ecstaz.activePage.title}}
+                </div>
+                <div
+                  class="mt-4 text-[2.75rem] leading-tight font-light text-neutral-100 focus:outline-none"
+                  wf-oninput="post('ecstaz.updateHeading', event)"
+                  wf-onblur="post('ecstaz.persist')"
+                  contenteditable="true"
+                  wf-class="{{state.ecstaz.editable ? '' : 'pointer-events-none text-neutral-600'}}"
+                >
+                  {{state.ecstaz.activePage.heading}}
+                </div>
+                <div
+                  class="mt-2 text-lg text-neutral-400 focus:outline-none"
+                  data-placeholder="Describe this surface"
+                  contenteditable="true"
+                  wf-oninput="post('ecstaz.updateSubheading', event)"
+                  wf-onblur="post('ecstaz.persist')"
+                  wf-class="{{state.ecstaz.editable ? '' : 'pointer-events-none text-neutral-600'}}"
+                >
+                  {{state.ecstaz.activePage.subheading}}
+                </div>
+              </div>
+              <div
+                class="flex items-center justify-end gap-3 flex-wrap"
+                wf-if="state.ecstaz.editable"
+              >
+                <button
+                  class="h-11 w-11 rounded-full border border-neutral-800 flex items-center justify-center text-lg hover:border-neutral-100 transition-colors"
+                  wf-onclick="post('ecstaz.requestCreatePage')"
+                  aria-label="New page"
+                  value=""
+                >
+                  <span class="nf nf-fa-plus"></span>
+                </button>
+                <button
+                  class="h-11 w-11 rounded-full border border-neutral-800 flex items-center justify-center text-lg hover:border-red-500 text-red-200 transition-colors"
+                  wf-onclick="post('ecstaz.requestArchivePage')"
+                  aria-label="Archive page"
+                  value=""
+                >
+                  <span class="nf nf-oct-x"></span>
+                </button>
+                <div class="flex items-center gap-2 flex-wrap justify-end">
+                  <button
+                    wf-map="page of state.ecstaz.pageList"
+                    class="px-4 py-1.5 rounded-full text-[11px] tracking-[0.25em] uppercase border border-neutral-800 text-neutral-400 hover:border-neutral-200 hover:text-neutral-50 transition-colors"
+                    wf-class="{{state.ecstaz.currentPath === page.key ? 'border-neutral-50 text-neutral-50' : ''}}"
+                    wf-onclick="post('ecstaz.selectPage', page.key)"
+                    value=""
+                  >
+                    {{page.title}}
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="text-xs text-amber-400" wf-if="state.ecstaz.flash">
+              {{state.ecstaz.flash}}
+            </div>
+            <div wf-if="state.ecstaz.editable" class="flex flex-col gap-2">
+              <div class="text-xs uppercase tracking-[0.35em] text-neutral-600">
+                Notion kit
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <button
+                  class="px-3 py-1.5 rounded-full text-xs tracking-[0.25em] uppercase border border-neutral-800 text-neutral-400 hover:text-neutral-50"
+                  wf-onclick="post('ecstaz.command', 'paragraph')"
+                  wf-class="{{state.ecstaz.editor?.isActive('paragraph') ? 'border-neutral-50 text-neutral-50' : ''}}"
+                  value=""
+                >
+                  Text
+                </button>
+                <button
+                  class="px-3 py-1.5 rounded-full text-xs tracking-[0.25em] uppercase border border-neutral-800 text-neutral-400 hover:text-neutral-50"
+                  wf-onclick="post('ecstaz.command', 'h2')"
+                  wf-class="{{state.ecstaz.editor?.isActive('heading', { level: 2 }) ? 'border-neutral-50 text-neutral-50' : ''}}"
+                  value=""
+                >
+                  H2
+                </button>
+                <button
+                  class="px-3 py-1.5 rounded-full text-xs tracking-[0.25em] uppercase border border-neutral-800 text-neutral-400 hover:text-neutral-50"
+                  wf-onclick="post('ecstaz.command', 'h3')"
+                  wf-class="{{state.ecstaz.editor?.isActive('heading', { level: 3 }) ? 'border-neutral-50 text-neutral-50' : ''}}"
+                  value=""
+                >
+                  H3
+                </button>
+                <button
+                  class="px-3 py-1.5 rounded-full text-xs tracking-[0.25em] uppercase border border-neutral-800 text-neutral-400 hover:text-neutral-50"
+                  wf-onclick="post('ecstaz.command', 'ul')"
+                  wf-class="{{state.ecstaz.editor?.isActive('bulletList') ? 'border-neutral-50 text-neutral-50' : ''}}"
+                  value=""
+                >
+                  Bullet
+                </button>
+                <button
+                  class="px-3 py-1.5 rounded-full text-xs tracking-[0.25em] uppercase border border-neutral-800 text-neutral-400 hover:text-neutral-50"
+                  wf-onclick="post('ecstaz.command', 'ol')"
+                  wf-class="{{state.ecstaz.editor?.isActive('orderedList') ? 'border-neutral-50 text-neutral-50' : ''}}"
+                  value=""
+                >
+                  Numbered
+                </button>
+                <button
+                  class="px-3 py-1.5 rounded-full text-xs tracking-[0.25em] uppercase border border-neutral-800 text-neutral-400 hover:text-neutral-50"
+                  wf-onclick="post('ecstaz.command', 'quote')"
+                  wf-class="{{state.ecstaz.editor?.isActive('blockquote') ? 'border-neutral-50 text-neutral-50' : ''}}"
+                  value=""
+                >
+                  Quote
+                </button>
+                <button
+                  class="px-3 py-1.5 rounded-full text-xs tracking-[0.25em] uppercase border border-neutral-800 text-neutral-400 hover:text-neutral-50"
+                  wf-onclick="post('ecstaz.command', 'code')"
+                  wf-class="{{state.ecstaz.editor?.isActive('codeBlock') ? 'border-neutral-50 text-neutral-50' : ''}}"
+                  value=""
+                >
+                  Code
+                </button>
+                <button
+                  class="px-3 py-1.5 rounded-full text-xs tracking-[0.25em] uppercase border border-neutral-800 text-neutral-400 hover:text-neutral-50"
+                  wf-onclick="post('ecstaz.command', 'bold')"
+                  wf-class="{{state.ecstaz.editor?.isActive('bold') ? 'border-neutral-50 text-neutral-50' : ''}}"
+                  value=""
+                >
+                  Bold
+                </button>
+                <button
+                  class="px-3 py-1.5 rounded-full text-xs tracking-[0.25em] uppercase border border-neutral-800 text-neutral-400 hover:text-neutral-50"
+                  wf-onclick="post('ecstaz.command', 'italic')"
+                  wf-class="{{state.ecstaz.editor?.isActive('italic') ? 'border-neutral-50 text-neutral-50' : ''}}"
+                  value=""
+                >
+                  Italic
+                </button>
+              </div>
+            </div>
+            <div class="prose">
+              <div
+                class="min-h-[420px]"
+                wf-onattach="post('ecstaz.attachEditor', _1)"
+                wf-ondetach="post('ecstaz.detachEditor')"
+              ></div>
+            </div>
+            <div
+              wf-if="!state.ecstaz.editable"
+              class="text-xs text-neutral-500 tracking-[0.25em] uppercase"
+            >
+              Enable editing via localStorage.setItem('ecz:editable', 1)
+            </div>
+          </div>
+        </div>
+        <div
+          wf-if="!state.ecstaz.ready"
+          class="flex items-center justify-center py-32 text-neutral-500 text-sm"
+        >
+          Loading the monochrome builder…
+        </div>
+      </div>
     </div>
   </body>
 </html>

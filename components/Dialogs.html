@@ -26,7 +26,7 @@
           <form
             class="bg-white shadow rounded-lg p-6 flex flex-col border border-slate-200 gap-5 max-w-sm min-w-xs"
             method="dialog"
-            wf-onsubmit="this.submit(event)"
+            wf-onsubmit="post('ecstaz.dialogSubmit', 'confirm', event)"
             id="ConfirmationDialog"
           >
             <div class="flex items-center gap-4 transition duration-1000">
@@ -67,7 +67,7 @@
           <form
             class="bg-white shadow rounded-lg p-6 flex flex-col border border-slate-200 gap-5 w-sm"
             method="dialog"
-            wf-onsubmit="this.submit(event)"
+            wf-onsubmit="post('ecstaz.dialogSubmit', 'newPage', event)"
             id="NewPageDialog"
           >
             <div class="flex items-center gap-4">
@@ -86,19 +86,19 @@
               <input
                 class="px-3 py-1 rounded border border-slate-200 bg-neutral-50 outline-none"
                 placeholder="Name"
-                wf-value="this.props.name"
-                wf-oninput="this.nameInput(event)"
+                wf-value="state.ecstaz.dialog.name"
+                wf-onkeyup="post('ecstaz.dialogInput', 'name', event)"
                 value=""
               /><input
                 class="px-3 py-1 rounded border border-slate-200 bg-neutral-50 outline-none"
                 placeholder="Path"
-                wf-value="this.props.path"
-                wf-oninput="this.pathInput(event)"
+                wf-value="state.ecstaz.dialog.path"
+                wf-onkeyup="post('ecstaz.dialogInput', 'path', event)"
                 value=""
               />
             </div>
-            <div wf-if="this.error" class="text-red-500 text-sm" hidden="">
-              {{this.error}}
+            <div wf-if="state.ecstaz.dialog.error" class="text-red-500 text-sm" hidden="">
+              {{state.ecstaz.dialog.error}}
             </div>
             <div class="flex gap-2">
               <button
@@ -111,27 +111,11 @@
               ><button
                 value="page"
                 class="px-3 py-1 flex-1 bg-neutral-950 text-neutral-50 hover:bg-neutral-800 transition-colors border border-transparent"
-                wf-class="{{replaces bg-black: !this.error ? 'bg-black' : 'bg-red-700'}}"
-                wf-onmouseleave="this.toggleAnimate(null)"
-                wf-onmouseenter="this.toggleAnimate('ok')"
-              >
-                Blog</button
-              ><button
-                value="page"
-                class="px-3 py-1 flex-1 bg-neutral-950 text-neutral-50 hover:bg-neutral-800 transition-colors border border-transparent"
-                wf-class="{{replaces bg-black: !this.error ? 'bg-black' : 'bg-red-700'}}"
+                wf-class="{{replaces bg-black: !state.ecstaz.dialog.error ? 'bg-black' : 'bg-red-700'}}"
                 wf-onmouseenter="this.toggleAnimate('ok')"
                 wf-onmouseleave="this.toggleAnimate(null)"
               >
-                Gallery</button
-              ><button
-                value="page"
-                class="px-3 py-1 flex-1 bg-neutral-950 text-neutral-50 hover:bg-neutral-800 transition-colors border border-transparent"
-                wf-class="{{replaces bg-black: !this.error ? 'bg-black' : 'bg-red-700'}}"
-                wf-onmouseenter="this.toggleAnimate('ok')"
-                wf-onmouseleave="this.toggleAnimate(null)"
-              >
-                Page
+                Create
               </button>
             </div>
           </form>
