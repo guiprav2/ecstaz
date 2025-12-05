@@ -130,6 +130,7 @@
             class="bg-white shadow rounded-lg p-6 flex flex-col border border-slate-200 gap-5 w-sm"
             method="dialog"
             wf-onsubmit="this.submit(event)"
+            wf-onattach="this.init()"
             id="InsertImageDialog"
           >
             <div class="flex items-center gap-4">
@@ -147,27 +148,24 @@
             <div class="flex flex-col gap-3">
               <input
                 class="px-3 py-1 rounded border border-slate-200 bg-neutral-50 outline-none"
-                wf-value="this.name"
-                wf-oninput="this.nameInput(event)"
-                value=""
                 placeholder="File name"
-                wf-if="this.file"
+                wf-value="this.fileName"
+                readonly=""
+                wf-if="this.fileData"
               /><input
                 class="px-3 py-1 rounded border border-slate-200 bg-neutral-50 outline-none"
                 placeholder="Image URL"
                 wf-value="this.url"
-                wf-oninput="this.nameInput(event)"
-                value=""
-                wf-if="!this.file"
+                wf-oninput="this.urlInput(event)"
+                wf-if="!this.fileData"
               /><input
                 class="px-3 py-1 rounded border border-slate-200 bg-neutral-50 outline-none"
                 placeholder="Alt caption"
                 wf-value="this.alt"
-                wf-oninput="this.pathInput(event)"
-                value=""
+                wf-oninput="this.altInput(event)"
               />
             </div>
-            <div wf-if="this.error" class="text-red-500 text-sm" hidden="">
+            <div wf-if="this.error" class="text-red-500 text-sm">
               {{this.error}}
             </div>
             <div class="flex gap-2">
@@ -179,21 +177,22 @@
               >
                 Cancel</button
               ><button
-                value="page"
+                type="button"
                 class="px-3 py-1 flex-1 bg-neutral-950 text-neutral-50 hover:bg-neutral-800 transition-colors border border-transparent"
                 wf-class="{{replaces bg-black: !this.error ? 'bg-black' : 'bg-red-700'}}"
-                wf-onmouseleave="this.toggleAnimate(null)"
+                wf-onclick="this.selectFile()"
                 wf-onmouseenter="this.toggleAnimate('ok')"
+                wf-onmouseleave="this.toggleAnimate(null)"
               >
                 Select</button
               ><button
-                value="page"
+                value="insert"
                 class="px-3 py-1 flex-1 bg-neutral-950 text-neutral-50 hover:bg-neutral-800 transition-colors border border-transparent"
                 wf-class="{{replaces bg-black: !this.error ? 'bg-black' : 'bg-red-700'}}"
                 wf-onmouseenter="this.toggleAnimate('ok')"
                 wf-onmouseleave="this.toggleAnimate(null)"
               >
-                OK
+                Insert
               </button>
             </div>
           </form>

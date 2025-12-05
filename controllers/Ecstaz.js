@@ -1273,25 +1273,12 @@ export default class Ecstaz {
     insertImage: async () => {
       let scope = this.state;
       if (!scope.editable || !scope.editor) return;
-      let input = prompt('Paste image URL or leave blank to choose a file:', '');
-      let src = (input || '').trim();
-      if (!src) {
-        try {
-          let file = await selectFile('image/*');
-          if (!file) return;
-          let reader = new FileReader();
-          reader.onload = () => {
-            let result = reader.result;
-            if (!result) return;
-            scope.editor.chain().focus().setImage({ src: result }).run();
-          };
-          reader.readAsDataURL(file);
-        } catch (err) {
-          this.actions.flash('Unable to load image.');
-        }
-        return;
-      }
-      scope.editor.chain().focus().setImage({ src }).run();
+      let [intent, detail] = await showModal('InsertImageDialog');
+      if (intent !== 'image') return;
+      let src = detail?.src;
+      if (!src) return;
+      let alt = detail?.alt || '';
+      scope.editor.chain().focus().setImage({ src, alt }).run();
     },
 
     syncInteractivePanels: () => {
