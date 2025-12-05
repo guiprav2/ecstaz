@@ -165,6 +165,12 @@
             text-decoration: underline;
           }
 
+          .prose > hr {
+            border: none;
+            border-top: 1px solid rgba(148, 163, 184, 0.3);
+            margin-block: 2rem;
+          }
+
           .prose [contenteditable]:focus,
           [contenteditable].prose:focus {
             outline: none !important; /* suppress UA outline safely */
@@ -186,7 +192,21 @@
                 <div
                   class="text-xs tracking-[0.65em] uppercase text-neutral-500"
                 >
-                  ECSTAZ
+                  <input
+                    wf-if="state.ecstaz.editable"
+                    type="text"
+                    class="bg-transparent w-full focus:outline-none border-none focus:ring-0 uppercase tracking-[0.65em] text-xs text-neutral-400"
+                    placeholder="Click to set site label"
+                    wf-value="state.ecstaz.siteTitleDraft"
+                    wf-onfocus="post('ecstaz.siteTitleFocus', event)"
+                    wf-oninput="post('ecstaz.siteTitleInput', event)"
+                    wf-onblur="post('ecstaz.siteTitleBlur', event)"
+                    value=""
+                    hidden=""
+                  />
+                  <div wf-if="!state.ecstaz.editable">
+                    {{state.ecstaz.siteTitle}}
+                  </div>
                 </div>
                 <div class="mt-4">
                   <input
@@ -222,7 +242,7 @@
                   <span class="nf nf-fa-plus"></span>
                 </button>
                 <button
-                  class="h-11 w-11 rounded-full border border-neutral-800 flex items-center justify-center text-lg hover:border-red-500 text-red-200 transition-colors"
+                  class="h-11 w-11 rounded-full border border-neutral-800 flex items-center justify-center text-lg transition-colors hover:border-neutral-100"
                   wf-onclick="post('ecstaz.requestArchivePage')"
                   aria-label="Archive page"
                   value=""
@@ -245,7 +265,7 @@
                 <input
                   wf-if="state.ecstaz.editable"
                   type="text"
-                  class="w-full bg-transparent leading-tight font-light text-neutral-100 focus:outline-none border-none focus:ring-0 px-0 text-[2.75rem] placeholder:italic"
+                  class="w-full bg-transparent leading-tight font-light text-neutral-100 focus:outline-none border-none focus:ring-0 px-0 placeholder:italic text-3xl"
                   placeholder="Click here to enter a page heading"
                   wf-value="state.ecstaz.activePage.heading"
                   wf-oninput="post('ecstaz.updateHeading', event)"
@@ -255,7 +275,7 @@
                 />
                 <div
                   wf-if="!state.ecstaz.editable &amp;&amp; state.ecstaz.activePage.heading"
-                  class="leading-tight font-light text-[2.75rem]"
+                  class="leading-tight font-light text-3xl"
                 >
                   {{state.ecstaz.activePage.heading}}
                 </div>
@@ -329,7 +349,7 @@
                               class="h-10 w-10 rounded-2xl border border-neutral-800 bg-neutral-900/70 flex items-center justify-center"
                             >
                               <span
-                                class="text-lg text-neutral-100 nf"
+                                class="text-lg text-neutral-100"
                                 wf-class="{{item.icon ? item.icon : 'nf-md-shape'}}"
                               ></span>
                             </div>
@@ -364,13 +384,68 @@
               </div>
               <div
                 class="absolute z-10 pointer-events-none"
+                wf-if="state.ecstaz.editable &amp;&amp; state.ecstaz.formatBar.visible"
+                wf-onattach="post('ecstaz.attachFormatBarEl', _1)"
+                wf-ondetach="post('ecstaz.detachFormatBarEl')"
+                hidden=""
+              >
+                <div
+                  class="pointer-events-auto flex items-center gap-3 rounded-full border border-neutral-900 bg-neutral-950/90 px-4 py-1 shadow-xl"
+                  wf-onmousedown="post('ecstaz.formatBarPointerDown', event)"
+                >
+                  <div
+                    class="text-neutral-500 text-lg select-none cursor-move"
+                    aria-hidden="true"
+                  >
+                    ⋮⋮
+                  </div>
+                  <button
+                    class="text-sm px-2 py-1 rounded-full border border-transparent hover:border-neutral-700 hover:bg-neutral-900"
+                    wf-class="{{state.ecstaz.editor?.isActive('bold') ? 'border-neutral-700 bg-neutral-900/70' : ''}}"
+                    wf-onclick="post('ecstaz.command', 'bold')"
+                    type="button"
+                    value=""
+                  >
+                    B
+                  </button>
+                  <button
+                    class="text-sm px-2 py-1 rounded-full border border-transparent hover:border-neutral-700 hover:bg-neutral-900"
+                    wf-class="{{state.ecstaz.editor?.isActive('italic') ? 'border-neutral-700 bg-neutral-900/70' : ''}}"
+                    wf-onclick="post('ecstaz.command', 'italic')"
+                    type="button"
+                    value=""
+                  >
+                    I
+                  </button>
+                  <button
+                    class="text-sm px-2 py-1 rounded-full border border-transparent hover:border-neutral-700 hover:bg-neutral-900"
+                    wf-class="{{state.ecstaz.editor?.isActive('heading', { level: 2 }) ? 'border-neutral-700 bg-neutral-900/70' : ''}}"
+                    wf-onclick="post('ecstaz.command', 'h2')"
+                    type="button"
+                    value=""
+                  >
+                    H2
+                  </button>
+                  <button
+                    class="text-sm px-2 py-1 rounded-full border border-transparent hover:border-neutral-700 hover:bg-neutral-900"
+                    wf-class="{{state.ecstaz.editor?.isActive('heading', { level: 3 }) ? 'border-neutral-700 bg-neutral-900/70' : ''}}"
+                    wf-onclick="post('ecstaz.command', 'h3')"
+                    type="button"
+                    value=""
+                  >
+                    H3
+                  </button>
+                </div>
+              </div>
+              <div
+                class="absolute z-10 pointer-events-none"
                 wf-if="state.ecstaz.editable &amp;&amp; state.ecstaz.gridUi.active"
                 wf-onattach="post('ecstaz.attachGridPanelEl', _1)"
                 wf-ondetach="post('ecstaz.detachGridPanelEl')"
                 hidden=""
               >
                 <div
-                  class="pointer-events-auto border border-neutral-900 rounded-3xl bg-neutral-950/95 p-4 space-y-4 shadow-2xl min-w-[260px]"
+                  class="pointer-events-auto border border-neutral-900 rounded-3xl bg-neutral-950/95 p-4 space-y-4 shadow-2xl min-w-[320px]"
                 >
                   <div
                     class="text-xs uppercase tracking-[0.35em] text-neutral-500"
@@ -423,20 +498,40 @@
                     >
                       Column widths
                     </div>
-                    <div class="flex flex-wrap gap-3">
+                    <div class="flex flex-col gap-3">
                       <div
                         wf-map="entry of state.ecstaz.gridUi.entries"
-                        class="flex items-center gap-2"
+                        class="flex flex-wrap items-center gap-2"
                       >
                         <span class="text-xs text-neutral-500"
                           >Col {{entry.idx + 1}}</span
                         >
                         <input
                           type="text"
-                          class="w-28 rounded-2xl border border-neutral-800 bg-neutral-950/80 px-3 py-1 text-sm text-neutral-100"
+                          class="w-20 rounded-2xl border border-neutral-800 bg-neutral-950/80 px-3 py-1 text-sm text-neutral-100"
                           placeholder="1fr"
                           wf-onattach="post('ecstaz.bindGridWidthInput', entry.idx, _1)"
                           wf-onchange="post('ecstaz.gridUiChangeWidth', entry.idx, event)"
+                          value=""
+                        />
+                        <label class="text-xs text-neutral-500">Col span</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="4"
+                          class="w-16 rounded-2xl border border-neutral-800 bg-neutral-950/80 px-2 py-1 text-sm text-neutral-100"
+                          wf-value="entry.colSpan"
+                          wf-onchange="post('ecstaz.gridUiChangeColSpan', entry.idx, event)"
+                          value=""
+                        />
+                        <label class="text-xs text-neutral-500">Row span</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="4"
+                          class="w-16 rounded-2xl border border-neutral-800 bg-neutral-950/80 px-2 py-1 text-sm text-neutral-100"
+                          wf-value="entry.rowSpan"
+                          wf-onchange="post('ecstaz.gridUiChangeRowSpan', entry.idx, event)"
                           value=""
                         />
                       </div>

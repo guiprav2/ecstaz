@@ -36,16 +36,6 @@ let paletteSections = [
         activeKey: 'paragraph',
       },
       {
-        id: 'style-h1',
-        label: 'Heading 1',
-        description: 'Large heading for sections.',
-        icon: 'nf-md-format_header_1',
-        kind: 'command',
-        payload: 'h1',
-        activeKey: 'heading',
-        activeAttrs: { level: 1 },
-      },
-      {
         id: 'style-h2',
         label: 'Heading 2',
         description: 'Medium heading size.',
@@ -122,6 +112,22 @@ let paletteSections = [
         payload: 'grid',
       },
       {
+        id: 'layout-hr',
+        label: 'Separator',
+        description: 'Divide sections with a clean rule.',
+        icon: 'nf-md-minus',
+        kind: 'command',
+        payload: 'hr',
+      },
+      {
+        id: 'layout-image',
+        label: 'Image',
+        description: 'Insert an image from URL or file.',
+        icon: 'nf-md-image',
+        kind: 'command',
+        payload: 'image',
+      },
+      {
         id: 'layout-table',
         label: 'Table',
         description: 'Insert a 3×3 table.',
@@ -166,15 +172,17 @@ let paletteSections = [
 ];
 
 export default class Ecstaz {
-    state = {
-      data: { pages: {}, order: [] },
-      editable: false,
-      initialized: false,
-      ready: false,
-      currentPath: '',
-      activePage: null,
-      titleDraft: '',
-      pageList: [],
+  state = {
+    data: { pages: {}, order: [] },
+    editable: false,
+    initialized: false,
+    ready: false,
+    currentPath: '',
+    activePage: null,
+    titleDraft: '',
+    siteTitle: 'ECSTAZ',
+    siteTitleDraft: 'ECSTAZ',
+    pageList: [],
     flash: '',
     flashTimer: null,
     editor: null,
@@ -192,6 +200,8 @@ export default class Ecstaz {
     commandPalette: { active: false, top: 0, left: 0, anchorPos: null },
     gridUi: { active: false, pos: null, cols: 0, gap: 1.5, widths: [], entries: [], left: 0, top: 0 },
     gridPanelEl: null,
+    formatBar: { visible: false, left: 0, top: 0 },
+    formatBarEl: null,
   };
 
   actions = {
@@ -225,6 +235,8 @@ export default class Ecstaz {
       }
       this.actions.ensureRoutes();
       scope.editable = Boolean(Number(localStorage.getItem('ecz:editable') || 0));
+      if (typeof scope.data.siteTitle === 'string' && scope.data.siteTitle.trim()) scope.siteTitle = scope.data.siteTitle;
+      scope.siteTitleDraft = scope.siteTitle;
     },
 
     preparePalette: () => {
@@ -362,11 +374,13 @@ export default class Ecstaz {
       this.state.paletteHostEl = el;
       this.actions.positionCommandPalette();
       this.actions.syncInteractivePanels();
+      this.actions.positionFormatBar();
     },
 
     detachPaletteHost: () => {
       this.state.paletteHostEl = null;
       this.actions.closeCommandPalette({ focusEditor: false });
+      this.state.formatBar = { visible: false, left: 0, top: 0 };
     },
 
     attachCommandPaletteEl: el => {
@@ -400,6 +414,28 @@ export default class Ecstaz {
       this.state.gridPanelEl = null;
     },
 
+    attachFormatBarEl: el => {
+      let scope = this.state;
+      scope.formatBarEl = el;
+      d.el(el, {
+        style: {
+          left: () => `${scope.formatBar.left}px`,
+          top: () => `${scope.formatBar.top}px`,
+        },
+      });
+      this.actions.positionFormatBar();
+    },
+
+    detachFormatBarEl: () => {
+      this.state.formatBarEl = null;
+    },
+
+    formatBarPointerDown: event => {
+      event?.preventDefault();
+      event?.stopPropagation();
+      this.state.editor?.commands?.focus?.();
+    },
+
     commandFilterInputAttach: el => {
       requestAnimationFrame(() => el?.focus());
     },
@@ -427,7 +463,7 @@ export default class Ecstaz {
 
     seed: () => {
       let key = 'pages/index.html';
-      let data = { pages: {}, order: [key] };
+      let data = { pages: {}, order: [key], siteTitle: 'ECSTAZ' };
       data.pages[key] = {
         title: 'Monochrome Atlas',
         heading: '',
@@ -546,6 +582,7 @@ export default class Ecstaz {
         }
         scope.editor.setEditable(Boolean(scope.editable));
         this.actions.evaluateCommandPalette();
+        this.actions.positionFormatBar();
         this.actions.syncInteractivePanels();
         return;
       }
@@ -559,6 +596,7 @@ export default class Ecstaz {
           scope.tiptap.TableRow,
           scope.tiptap.TableHeader,
           scope.tiptap.TableCell,
+          scope.tiptap.Image,
           scope.tiptap.GridColumn,
           scope.tiptap.GridBlock,
           scope.tiptap.HtmlBlock,
@@ -577,12 +615,18 @@ export default class Ecstaz {
       scope.editorPageKey = scope.currentPath;
       let handleEditorChange = () => {
         this.actions.evaluateCommandPalette();
+        this.actions.positionFormatBar();
         this.actions.syncInteractivePanels();
         d.update();
       };
       editor.on('selectionUpdate', handleEditorChange);
       editor.on('transaction', handleEditorChange);
+      editor.on('blur', () => {
+        this.state.formatBar = { visible: false, left: 0, top: 0 };
+        d.update();
+      });
       this.actions.evaluateCommandPalette();
+      this.actions.positionFormatBar();
       this.actions.syncInteractivePanels();
     },
 
@@ -592,6 +636,7 @@ export default class Ecstaz {
       let core = await import('https://esm.sh/@tiptap/core@2.1.11?bundle');
       let starter = await import('https://esm.sh/@tiptap/starter-kit@2.1.11?bundle');
       let placeholder = await import('https://esm.sh/@tiptap/extension-placeholder@2.1.11?bundle');
+      let image = await import('https://esm.sh/@tiptap/extension-image@2.1.11?bundle');
       let table = await import('https://esm.sh/@tiptap/extension-table@2.1.11?bundle');
       let tableRow = await import('https://esm.sh/@tiptap/extension-table-row@2.1.11?bundle');
       let tableCell = await import('https://esm.sh/@tiptap/extension-table-cell@2.1.11?bundle');
@@ -619,31 +664,47 @@ export default class Ecstaz {
         content: 'block+',
         defining: true,
         isolating: true,
+        addAttributes() {
+          return {
+            colSpan: { default: 1 },
+            rowSpan: { default: 1 },
+          };
+        },
         parseHTML() {
           return [
             {
               tag: 'div[data-grid-column]',
+              getAttrs: dom => ({
+                colSpan: Number(dom.getAttribute('data-colspan')) || 1,
+                rowSpan: Number(dom.getAttribute('data-rowspan')) || 1,
+              }),
             },
           ];
         },
         renderHTML({ HTMLAttributes }) {
+          let { colSpan, rowSpan, ...rest } = HTMLAttributes;
+          let spanX = colSpan || 1;
+          let spanY = rowSpan || 1;
+          let baseStyle = rest.style ? rest.style + ';' : '';
           return [
             'div',
-            mergeAttributes(HTMLAttributes, {
+            mergeAttributes(rest, {
               'data-grid-column': '',
+              'data-colspan': spanX,
+              'data-rowspan': spanY,
               class: 'wf-grid-column prose rounded-2xl bg-neutral-900/50 p-4 space-y-3 min-h-[120px]',
+              style: `${baseStyle}grid-column: span ${spanX}; grid-row: span ${spanY};`,
             }),
             0,
           ];
         },
         addKeyboardShortcuts() {
-          return {
-            Backspace: () => {
-              let editor = this.editor;
-              let { state } = editor;
-              let { selection } = state;
-              if (!selection.empty) return false;
-              let { $from } = selection;
+          let handleDelete = () => {
+            let editor = this.editor;
+            let { state } = editor;
+            let { selection } = state;
+            if (!selection.empty) return false;
+            let { $from } = selection;
               let schema = state.schema;
               let columnDepth = null;
               let blockDepth = null;
@@ -695,9 +756,12 @@ export default class Ecstaz {
                 cols: gridBlock.childCount - 1,
                 widths: serializeWidths(widths),
               });
-              editor.view.dispatch(tr);
-              return true;
-            },
+            editor.view.dispatch(tr);
+            return true;
+          };
+          return {
+            Backspace: handleDelete,
+            'Mod-Backspace': handleDelete,
           };
         },
       });
@@ -926,6 +990,7 @@ export default class Ecstaz {
         Editor: core.Editor,
         StarterKit: starter.default,
         Placeholder: placeholder.default,
+        Image: image.default,
         Table: table.default,
         TableRow: tableRow.default,
         TableCell: tableCell.default,
@@ -950,6 +1015,7 @@ export default class Ecstaz {
       scope.editor.destroy();
       scope.editor = null;
       scope.editorPageKey = '';
+      scope.formatBar = { visible: false, left: 0, top: 0 };
     },
 
     updateHeading: event => {
@@ -998,6 +1064,31 @@ export default class Ecstaz {
       if (value === scope.activePage.title) return;
       scope.activePage.title = value;
       this.actions.refreshPageList();
+      this.actions.persist();
+    },
+
+    siteTitleInput: event => {
+      if (!this.state.editable) return;
+      this.state.siteTitleDraft = event?.target?.value ?? '';
+    },
+
+    siteTitleFocus: event => {
+      if (event?.target) event.target.value = this.state.siteTitle;
+      this.state.siteTitleDraft = this.state.siteTitle;
+    },
+
+    siteTitleBlur: event => {
+      if (!this.state.editable) return;
+      let value = (this.state.siteTitleDraft || '').trim();
+      if (!value) {
+        this.state.siteTitleDraft = this.state.siteTitle;
+        if (event?.target) event.target.value = this.state.siteTitle;
+        return;
+      }
+      if (value === this.state.siteTitle) return;
+      this.state.siteTitle = value;
+      this.state.siteTitleDraft = value;
+      this.state.data.siteTitle = value;
       this.actions.persist();
     },
 
@@ -1178,6 +1269,7 @@ export default class Ecstaz {
       for (let i = 0; i < safeCols; i++) {
         columns.push({
           type: 'gridColumn',
+          attrs: { colSpan: 1, rowSpan: 1 },
           content: [
             {
               type: 'paragraph',
@@ -1204,6 +1296,30 @@ export default class Ecstaz {
         .run();
     },
 
+    insertImage: async () => {
+      let scope = this.state;
+      if (!scope.editable || !scope.editor) return;
+      let input = prompt('Paste image URL or leave blank to choose a file:', '');
+      let src = (input || '').trim();
+      if (!src) {
+        try {
+          let file = await selectFile('image/*');
+          if (!file) return;
+          let reader = new FileReader();
+          reader.onload = () => {
+            let result = reader.result;
+            if (!result) return;
+            scope.editor.chain().focus().setImage({ src: result }).run();
+          };
+          reader.readAsDataURL(file);
+        } catch (err) {
+          this.actions.flash('Unable to load image.');
+        }
+        return;
+      }
+      scope.editor.chain().focus().setImage({ src }).run();
+    },
+
     syncInteractivePanels: () => {
       let detail = this.actions.findActiveGridBlock();
       if (!detail) {
@@ -1216,21 +1332,33 @@ export default class Ecstaz {
       let host = this.state.paletteHostEl?.getBoundingClientRect();
       if (this.state.editor && host) {
         try {
-          let coords = this.state.editor.view.coordsAtPos(detail.pos + detail.node.nodeSize - 1);
-          left = coords.left - host.left;
-          top = coords.bottom - host.top + 12;
+          let dom = this.state.editor.view.nodeDOM(detail.pos);
+          if (dom?.getBoundingClientRect) {
+            let rect = dom.getBoundingClientRect();
+            left = rect.left - host.left;
+            top = rect.bottom - host.top + 12;
+          }
         } catch (err) {
           left = 0;
           top = 0;
         }
       }
+      let entries = widths.map((width, idx) => {
+        let child = detail.node.child(idx);
+        return {
+          width,
+          idx,
+          colSpan: child.attrs.colSpan || 1,
+          rowSpan: child.attrs.rowSpan || 1,
+        };
+      });
       this.state.gridUi = {
         active: true,
         pos: detail.pos,
         cols: detail.node.childCount,
         gap: Number(detail.node.attrs.gap) || 1.5,
         widths,
-        entries: widths.map((width, idx) => ({ width, idx })),
+        entries,
         left,
         top,
       };
@@ -1288,7 +1416,7 @@ export default class Ecstaz {
           let insertPos = pos + node.nodeSize - 1;
           for (let i = node.childCount; i < count; i++) {
             let paragraph = paragraphType.create({}, state.schema.text(`Column ${i + 1}`));
-            let column = columnType.create({}, paragraph);
+            let column = columnType.create({ colSpan: 1, rowSpan: 1 }, paragraph);
             tr.insert(insertPos, column);
             insertPos += column.nodeSize;
             widths[i] = '1fr';
@@ -1337,6 +1465,48 @@ export default class Ecstaz {
       d.update();
     },
 
+    gridSetColumnSpan: (index, value) => {
+      let idx = Number(index);
+      if (!Number.isFinite(idx)) return;
+      let span = Math.min(Math.max(Math.round(Number(value) || 1), 1), 4);
+      this.actions.withGridNode(({ tr, node, pos }) => {
+        if (idx < 0 || idx >= node.childCount) return false;
+        let offset = pos + 1;
+        for (let i = 0; i < node.childCount; i++) {
+          let child = node.child(i);
+          if (i === idx) {
+            tr.setNodeMarkup(offset, undefined, { ...child.attrs, colSpan: span });
+            break;
+          }
+          offset += child.nodeSize;
+        }
+        return true;
+      });
+      this.actions.syncInteractivePanels();
+      d.update();
+    },
+
+    gridSetRowSpan: (index, value) => {
+      let idx = Number(index);
+      if (!Number.isFinite(idx)) return;
+      let span = Math.min(Math.max(Math.round(Number(value) || 1), 1), 4);
+      this.actions.withGridNode(({ tr, node, pos }) => {
+        if (idx < 0 || idx >= node.childCount) return false;
+        let offset = pos + 1;
+        for (let i = 0; i < node.childCount; i++) {
+          let child = node.child(i);
+          if (i === idx) {
+            tr.setNodeMarkup(offset, undefined, { ...child.attrs, rowSpan: span });
+            break;
+          }
+          offset += child.nodeSize;
+        }
+        return true;
+      });
+      this.actions.syncInteractivePanels();
+      d.update();
+    },
+
     gridUiChangeCols: event => {
       let value = event?.target?.value ?? event;
       this.actions.gridSetColumns(value);
@@ -1350,6 +1520,16 @@ export default class Ecstaz {
     gridUiChangeWidth: (index, event) => {
       let value = event?.target?.value ?? event;
       this.actions.gridSetColumnWidth(index, value);
+    },
+
+    gridUiChangeColSpan: (index, event) => {
+      let value = event?.target?.value ?? event;
+      this.actions.gridSetColumnSpan(index, value);
+    },
+
+    gridUiChangeRowSpan: (index, event) => {
+      let value = event?.target?.value ?? event;
+      this.actions.gridSetRowSpan(index, value);
     },
 
     bindGridInput: (field, el) => {
@@ -1371,6 +1551,37 @@ export default class Ecstaz {
           return widths[index] ?? '';
         },
       });
+    },
+
+    positionFormatBar: () => {
+      let scope = this.state;
+      if (!scope.editable || !scope.editor || !scope.paletteHostEl) {
+        scope.formatBar = { visible: false, left: 0, top: 0 };
+        return;
+      }
+      if (!scope.editor.view.hasFocus()) {
+        scope.formatBar = { visible: false, left: 0, top: 0 };
+        return;
+      }
+      let host = scope.paletteHostEl.getBoundingClientRect();
+      try {
+        let left = host.width / 2;
+        let width = scope.formatBarEl?.offsetWidth || 0;
+        if (width) {
+          left -= width / 2;
+          let maxLeft = host.width - width;
+          if (maxLeft < 0) maxLeft = 0;
+          if (left < 0) left = 0;
+          if (left > maxLeft) left = maxLeft;
+        }
+        let { from } = scope.editor.state.selection;
+        let coords = scope.editor.view.coordsAtPos(from);
+        let top = coords.top - host.top - 64;
+        if (top < 12) top = 12;
+        scope.formatBar = { visible: true, left, top };
+      } catch (err) {
+        scope.formatBar = { visible: false, left: 0, top: 0 };
+      }
     },
 
     command: cmd => {
@@ -1416,6 +1627,13 @@ export default class Ecstaz {
         case 'table':
           chain.run();
           this.actions.insertTable();
+          d.update();
+          return;
+        case 'hr':
+          chain.setHorizontalRule();
+          break;
+        case 'image':
+          this.actions.insertImage();
           d.update();
           return;
         case 'customHtml':
