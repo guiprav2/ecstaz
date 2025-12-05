@@ -1,4 +1,4 @@
-let defaultBody = `<p class="text-neutral-400">Begin drafting in this monochrome workspace.</p>`;
+let defaultBody = ``;
 let paletteSections = [
   {
     id: 'ai',
@@ -514,6 +514,7 @@ export default class Ecstaz {
       let data = { pages: {}, order: [key], siteTitle: 'ECSTAZ' };
       data.pages[key] = {
         title: 'Monochrome Atlas',
+        menuTitle: 'Home',
         heading: '',
         body: defaultBody,
         route: '/',
@@ -591,7 +592,7 @@ export default class Ecstaz {
       for (let key of scope.data.order) {
         let page = scope.data.pages[key];
         if (!page) continue;
-        list.push({ key, title: page.title, route: page.route || this.actions.pathToRoute(key) });
+        list.push({ key, title: page.title, menuTitle: page.menuTitle, route: page.route || this.actions.pathToRoute(key) });
       }
       scope.pageList = list;
     },
@@ -1084,21 +1085,32 @@ export default class Ecstaz {
     titleInputFocus: event => {
       let scope = this.state;
       if (!scope.activePage) return;
-      scope.titleDraft = scope.activePage.title;
-      if (event?.target) event.target.value = scope.titleDraft;
+      let baseTitle = scope.activePage.title || '';
+      scope.titleDraft = baseTitle;
+      let menu = (scope.activePage.menuTitle || '').trim();
+      if (event?.target) {
+        event.target.value = menu ? `${baseTitle} (${menu})` : baseTitle;
+      }
     },
 
     titleInputBlur: event => {
       let scope = this.state;
       if (!scope.editable || !scope.activePage) return;
-      let value = (scope.titleDraft || '').trim();
-      if (!value) {
-        scope.titleDraft = scope.activePage.title;
-        if (event?.target) event.target.value = scope.titleDraft;
-        return;
+      let raw = (event?.target?.value ?? scope.titleDraft ?? '').trim();
+      let main = raw;
+      let menu = scope.activePage.menuTitle || '';
+      let match = /(.*)\(([^)]+)\)\s*$/.exec(raw);
+      if (match) {
+        main = match[1].trim();
+        menu = match[2].trim();
       }
-      if (value === scope.activePage.title) return;
-      scope.activePage.title = value;
+      if (!main) {
+        main = scope.activePage.title;
+        if (event?.target) event.target.value = menu ? `${main} (${menu})` : main;
+      }
+      scope.titleDraft = main;
+      scope.activePage.title = main;
+      scope.activePage.menuTitle = menu;
       this.actions.refreshPageList();
       this.actions.persist();
     },
