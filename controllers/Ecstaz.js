@@ -373,12 +373,23 @@ export default class Ecstaz {
 
     attachPaletteHost: el => {
       this.state.paletteHostEl = el;
+      if (!this._layoutWatcher) {
+        this._layoutWatcher = () => {
+          if (!this.state.paletteHostEl) return;
+          this.actions.positionCommandPalette();
+          this.actions.syncInteractivePanels();
+          this.actions.positionFormatBar();
+          d.update();
+        };
+      }
+      window.addEventListener('resize', this._layoutWatcher);
       this.actions.positionCommandPalette();
       this.actions.syncInteractivePanels();
       this.actions.positionFormatBar();
     },
 
     detachPaletteHost: () => {
+      window.removeEventListener('resize', this._layoutWatcher);
       this.state.paletteHostEl = null;
       this.actions.closeCommandPalette({ focusEditor: false });
       this.state.formatBar = { visible: false, left: 0, top: 0 };
@@ -389,8 +400,9 @@ export default class Ecstaz {
       scope.commandPaletteEl = el;
       d.el(el, {
         style: {
-          left: () => `${scope.commandPalette.left}px`,
-          top: () => `${scope.commandPalette.top}px`,
+          position: () => 'absolute',
+          left: () => `${scope.commandPalette.left + this.actions.getHostDocumentOffsets().left}px`,
+          top: () => `${scope.commandPalette.top + this.actions.getHostDocumentOffsets().top}px`,
         },
       });
       this.actions.positionCommandPalette();
@@ -405,8 +417,9 @@ export default class Ecstaz {
       scope.gridPanelEl = el;
       d.el(el, {
         style: {
-          left: () => `${scope.gridUi.left}px`,
-          top: () => `${scope.gridUi.top}px`,
+          position: () => 'absolute',
+          left: () => `${scope.gridUi.left + this.actions.getHostDocumentOffsets().left}px`,
+          top: () => `${scope.gridUi.top + this.actions.getHostDocumentOffsets().top}px`,
         },
       });
     },
@@ -420,8 +433,9 @@ export default class Ecstaz {
       scope.formatBarEl = el;
       d.el(el, {
         style: {
-          left: () => `${scope.formatBar.left}px`,
-          top: () => `${scope.formatBar.top}px`,
+          position: () => 'absolute',
+          left: () => `${scope.formatBar.left + this.actions.getHostDocumentOffsets().left}px`,
+          top: () => `${scope.formatBar.top + this.actions.getHostDocumentOffsets().top}px`,
         },
       });
       this.actions.positionFormatBar();
@@ -429,6 +443,25 @@ export default class Ecstaz {
 
     detachFormatBarEl: () => {
       this.state.formatBarEl = null;
+    },
+
+    getHostDocumentOffsets: () => {
+      let host = this.state.paletteHostEl;
+      if (!host?.getBoundingClientRect) return { left: 0, top: 0 };
+      let rect = host.getBoundingClientRect();
+      let scrollX =
+        window.scrollX ??
+        window.pageXOffset ??
+        document.documentElement?.scrollLeft ??
+        document.body?.scrollLeft ??
+        0;
+      let scrollY =
+        window.scrollY ??
+        window.pageYOffset ??
+        document.documentElement?.scrollTop ??
+        document.body?.scrollTop ??
+        0;
+      return { left: rect.left + scrollX, top: rect.top + scrollY };
     },
 
     formatBarPointerDown: event => {
