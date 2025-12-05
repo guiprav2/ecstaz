@@ -230,25 +230,29 @@
                 </div>
               </div>
               <div
-                class="flex items-center justify-end gap-3 flex-wrap"
+                class="flex items-center justify-end gap-3 flex-wrap group"
                 wf-if="state.ecstaz.editable"
               >
-                <button
-                  class="h-11 w-11 rounded-full border border-neutral-800 flex items-center justify-center text-lg hover:border-neutral-100 transition-colors"
-                  wf-onclick="post('ecstaz.requestCreatePage')"
-                  aria-label="New page"
-                  value=""
+                <div
+                  class="flex gap-3 opacity-0 group-hover:opacity-100 transition-all"
                 >
-                  <span class="nf nf-fa-plus"></span>
-                </button>
-                <button
-                  class="h-11 w-11 rounded-full border border-neutral-800 flex items-center justify-center text-lg transition-colors hover:border-neutral-100"
-                  wf-onclick="post('ecstaz.requestArchivePage')"
-                  aria-label="Archive page"
-                  value=""
-                >
-                  <span class="nf nf-oct-x"></span>
-                </button>
+                  <button
+                    class="h-11 w-11 rounded-full border border-neutral-800 flex items-center justify-center text-lg hover:border-neutral-100 transition-colors"
+                    wf-onclick="post('ecstaz.requestCreatePage')"
+                    value=""
+                    aria-label="New page"
+                  >
+                    <span class="nf nf-fa-plus"></span></button
+                  ><button
+                    class="h-11 w-11 rounded-full border border-neutral-800 flex items-center justify-center text-lg transition-colors hover:border-neutral-100"
+                    wf-onclick="post('ecstaz.requestArchivePage')"
+                    aria-label="Archive page"
+                    value=""
+                  >
+                    <span class="nf nf-oct-x"></span>
+                  </button>
+                </div>
+
                 <div class="flex items-center gap-2 flex-wrap justify-end">
                   <button
                     wf-map="page of state.ecstaz.pageList"
