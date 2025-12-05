@@ -201,6 +201,7 @@ export default class Ecstaz {
     gridUi: { active: false, pos: null, cols: 0, gap: 1.5, widths: [], entries: [], left: 0, top: 0 },
     gridPanelEl: null,
     formatBar: { visible: false, left: 0, top: 0 },
+    formatBarLocked: false,
     formatBarEl: null,
   };
 
@@ -431,6 +432,49 @@ export default class Ecstaz {
     },
 
     formatBarPointerDown: event => {
+      let scope = this.state;
+      if (!scope.editable || !scope.formatBarEl || !scope.paletteHostEl) return;
+      event?.preventDefault();
+      event?.stopPropagation();
+      scope.editor?.commands?.focus?.();
+      let host = scope.paletteHostEl.getBoundingClientRect();
+      let width = scope.formatBarEl.offsetWidth || 0;
+      let height = scope.formatBarEl.offsetHeight || 0;
+      let startX = event.clientX;
+      let startY = event.clientY;
+      let startLeft = scope.formatBar.left;
+      let startTop = scope.formatBar.top;
+      scope.formatBarLocked = true;
+      let handleMove = e => {
+        e.preventDefault();
+        let dx = e.clientX - startX;
+        let dy = e.clientY - startY;
+        let left = startLeft + dx;
+        let top = startTop + dy;
+        let viewportWidth = window.innerWidth || host.width;
+        let viewportHeight = window.innerHeight || host.height;
+        let minLeft = -host.left + 8;
+        let maxLeft = viewportWidth - host.left - width - 8;
+        let minTop = -host.top - height;
+        let maxTop = viewportHeight - host.top - height - 8;
+        if (left < minLeft) left = minLeft;
+        if (left > maxLeft) left = maxLeft;
+        if (top < minTop) top = minTop;
+        if (top > maxTop) top = maxTop;
+        scope.formatBar = { ...scope.formatBar, left, top, visible: true };
+        d.update();
+      };
+      let handleUp = () => {
+        window.removeEventListener('pointermove', handleMove);
+        window.removeEventListener('pointerup', handleUp);
+        scope.formatBarLocked = false;
+        d.update();
+      };
+      window.addEventListener('pointermove', handleMove);
+      window.addEventListener('pointerup', handleUp);
+    },
+
+    formatBarKeep: event => {
       event?.preventDefault();
       event?.stopPropagation();
       this.state.editor?.commands?.focus?.();
@@ -622,7 +666,8 @@ export default class Ecstaz {
       editor.on('selectionUpdate', handleEditorChange);
       editor.on('transaction', handleEditorChange);
       editor.on('blur', () => {
-        this.state.formatBar = { visible: false, left: 0, top: 0 };
+        if (this.state.formatBarLocked) return;
+        this.state.formatBar = { ...this.state.formatBar, visible: false };
         d.update();
       });
       this.actions.evaluateCommandPalette();
@@ -1016,6 +1061,7 @@ export default class Ecstaz {
       scope.editor = null;
       scope.editorPageKey = '';
       scope.formatBar = { visible: false, left: 0, top: 0 };
+      scope.formatBarLocked = false;
     },
 
     updateHeading: event => {
@@ -1564,6 +1610,7 @@ export default class Ecstaz {
         return;
       }
       let host = scope.paletteHostEl.getBoundingClientRect();
+      if (scope.formatBarLocked) return;
       try {
         let left = host.width / 2;
         let width = scope.formatBarEl?.offsetWidth || 0;
@@ -1574,10 +1621,7 @@ export default class Ecstaz {
           if (left < 0) left = 0;
           if (left > maxLeft) left = maxLeft;
         }
-        let { from } = scope.editor.state.selection;
-        let coords = scope.editor.view.coordsAtPos(from);
-        let top = coords.top - host.top - 64;
-        if (top < 12) top = 12;
+        let top = -64;
         scope.formatBar = { visible: true, left, top };
       } catch (err) {
         scope.formatBar = { visible: false, left: 0, top: 0 };
