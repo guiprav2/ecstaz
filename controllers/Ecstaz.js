@@ -1071,20 +1071,6 @@ export default class Ecstaz {
       scope.activePage.heading = value;
     },
 
-    dialogInput: (field, event) => {
-      let scope = this.state;
-      let value = event?.target?.value || '';
-      if (field === 'name') {
-        scope.dialog.name = value;
-        if (!scope.dialog.touchedPath) scope.dialog.path = this.actions.slugify(value);
-      }
-      if (field === 'path') {
-        scope.dialog.touchedPath = true;
-        scope.dialog.path = this.actions.normalizePath(value);
-      }
-      scope.dialog.error = '';
-    },
-
     titleInput: event => {
       let scope = this.state;
       if (!scope.editable || !scope.activePage) return;
@@ -1136,64 +1122,6 @@ export default class Ecstaz {
       this.state.siteTitleDraft = value;
       this.state.data.siteTitle = value;
       this.actions.persist();
-    },
-
-    slugify: value => {
-      let lower = (value || '').toLowerCase();
-      let cleaned = lower.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-      if (!cleaned) cleaned = 'new-page';
-      return `${cleaned}.html`;
-    },
-
-    normalizePath: value => {
-      let lower = (value || '').toLowerCase().replace(/^\/+/, '');
-      lower = lower.replace(/\.html?$/, '');
-      let parts = lower.split('/').map(x => x.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')).filter(Boolean);
-      let joined = parts.join('/');
-      if (!joined) joined = 'new-page';
-      return `${joined}.html`;
-    },
-
-    resolveDialogPayload: () => {
-      let scope = this.state;
-      let name = (scope.dialog.name || '').trim() || 'Untitled Page';
-      let path = scope.dialog.path ? this.actions.normalizePath(scope.dialog.path) : this.actions.slugify(name);
-      let key = `pages/${path}`;
-      let route = this.actions.pathToRoute(key);
-      return { name, path, key, route };
-    },
-
-    validateNewPage: payload => {
-      if (!payload.name) return 'Name is required';
-      if (!payload.path) return 'Path is required';
-      if (this.state.data.pages[payload.key]) return 'Page already exists';
-      return '';
-    },
-
-    dialogSubmit: (type, event) => {
-      if (!event) return;
-      if (type === 'confirm') {
-        if (event.submitter?.value !== 'ok') return;
-        event.preventDefault();
-        let dialog = event.target.closest('dialog');
-        dialog?.close('ok');
-        return;
-      }
-      if (type !== 'newPage') return;
-      if (event.submitter?.value !== 'page') return;
-      event.preventDefault();
-      let payload = this.actions.resolveDialogPayload();
-      let error = this.actions.validateNewPage(payload);
-      if (error) {
-        this.state.dialog.error = error;
-        return;
-      }
-      this.state.dialog.error = '';
-      let dialog = event.target.closest('dialog');
-      if (dialog) {
-        dialog.returnDetail = [payload];
-        dialog.close('page');
-      }
     },
 
     requestCreatePage: async () => {

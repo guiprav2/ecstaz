@@ -26,7 +26,7 @@
           <form
             class="bg-white shadow rounded-lg p-6 flex flex-col border border-slate-200 gap-5 max-w-sm min-w-xs"
             method="dialog"
-            wf-onsubmit="post('ecstaz.dialogSubmit', 'confirm', event)"
+            wf-onsubmit="this.submit(event)"
             id="ConfirmationDialog"
           >
             <div class="flex items-center gap-4 transition duration-1000">
@@ -67,7 +67,7 @@
           <form
             class="bg-white shadow rounded-lg p-6 flex flex-col border border-slate-200 gap-5 w-sm"
             method="dialog"
-            wf-onsubmit="post('ecstaz.dialogSubmit', 'newPage', event)"
+            wf-onsubmit="this.submit(event)"
             id="NewPageDialog"
           >
             <div class="flex items-center gap-4">
@@ -87,17 +87,21 @@
                 class="px-3 py-1 rounded border border-slate-200 bg-neutral-50 outline-none"
                 placeholder="Name"
                 wf-value="state.ecstaz.dialog.name"
-                wf-onkeyup="post('ecstaz.dialogInput', 'name', event)"
                 value=""
+                wf-oninput="this.nameInput(event)"
               /><input
                 class="px-3 py-1 rounded border border-slate-200 bg-neutral-50 outline-none"
                 placeholder="Path"
                 wf-value="state.ecstaz.dialog.path"
-                wf-onkeyup="post('ecstaz.dialogInput', 'path', event)"
                 value=""
+                wf-oninput="this.pathInput(event)"
               />
             </div>
-            <div wf-if="state.ecstaz.dialog.error" class="text-red-500 text-sm" hidden="">
+            <div
+              wf-if="state.ecstaz.dialog.error"
+              class="text-red-500 text-sm"
+              hidden=""
+            >
               {{state.ecstaz.dialog.error}}
             </div>
             <div class="flex gap-2">
