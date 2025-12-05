@@ -1,0 +1,142 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Dialogs.html</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1"
+    />
+    <script>
+      window.rootPrefix = /^\/(files|preview)\//.test(location.pathname)
+        ? location.pathname.split('/').slice(0, 4).join('/')
+        : '/';
+    </script>
+    <script type="module" src="../webfoundry/ifdesigner.js"></script>
+    <script src="../webfoundry/head.js"></script>
+  </head>
+  <body
+    class="flex flex-col [&amp;&gt;div:first-child]:flex-1 min-h-screen"
+    style="display: none"
+  >
+    <div class="p-16 flex flex-col gap-8 bg-neutral-100">
+      <div class="grid xl:grid-cols-3">
+        <div class="flex flex-col gap-6">
+          <div class="text-3xl">ConfirmationDialog</div>
+          <form
+            class="bg-white shadow rounded-lg p-6 flex flex-col border border-slate-200 gap-5 max-w-sm min-w-xs"
+            method="dialog"
+            wf-onsubmit="this.submit(event)"
+            id="ConfirmationDialog"
+          >
+            <div class="flex items-center gap-4 transition duration-1000">
+              <div
+                class="w-8 h-8 bg-black transition-all flex justify-center items-center text-neutral-50"
+                wf-class="{{this.animate === 'ok' &amp;&amp; '-rotate-45 scale-90'}} {{this.animate !== 'cancel' ? 'bg-black' : 'duration-1000 bg-neutral-800 scale-80'}}"
+              >
+                <div
+                  class="rotate-45 opacity-0"
+                  wf-class="{{replaces opacity-0: (!this.animate || this.animate === 'cancel') &amp;&amp; 'opacity-0'}}"
+                >
+                  ?
+                </div>
+              </div>
+              <div>{{this.props.title || 'Are you sure?'}}</div>
+            </div>
+            <div class="flex gap-2">
+              <button
+                class="px-3 py-1 flex-1 transition-colors border border-neutral-700 hover:border-neutral-400"
+                value="cancel"
+                wf-onmouseleave="this.toggleAnimate(null)"
+                wf-onmouseenter="this.toggleAnimate('cancel')"
+              >
+                Cancel</button
+              ><button
+                value="ok"
+                class="px-3 py-1 flex-1 bg-neutral-950 text-neutral-50 hover:bg-neutral-800 transition-colors border border-transparent"
+                wf-onmouseenter="this.toggleAnimate('ok')"
+                wf-onmouseleave="this.toggleAnimate(null)"
+              >
+                OK
+              </button>
+            </div>
+          </form>
+        </div>
+        <div class="flex flex-col gap-6">
+          <div class="text-3xl">NewPageDialog</div>
+          <form
+            class="bg-white shadow rounded-lg p-6 flex flex-col border border-slate-200 gap-5 w-sm"
+            method="dialog"
+            wf-onsubmit="this.submit(event)"
+            id="NewPageDialog"
+          >
+            <div class="flex items-center gap-4">
+              <div
+                class="w-8 h-8 duration-1000 bg-black transition-all flex justify-center items-center text-neutral-50 text-xs"
+                wf-class="{{replaces bg-black: !this.error ? 'bg-black' : 'bg-red-700'}} {{this.animate === 'ok' &amp;&amp; 'animate-ping'}} {{this.animate !== 'cancel' ? 'bg-black' : 'bg-neutral-800 scale-80'}}"
+              >
+                <div
+                  class="nf nf-fa-plus relative top-0.5 opacity-0 transition-all"
+                  wf-class="{{replaces opacity-0: this.animate !== 'ok' &amp;&amp; 'opacity-0'}}"
+                ></div>
+              </div>
+              <div>New Page</div>
+            </div>
+            <div class="flex flex-col gap-3">
+              <input
+                class="px-3 py-1 rounded border border-slate-200 bg-neutral-50 outline-none"
+                placeholder="Name"
+                wf-value="this.props.name"
+                wf-oninput="this.nameInput(event)"
+                value=""
+              /><input
+                class="px-3 py-1 rounded border border-slate-200 bg-neutral-50 outline-none"
+                placeholder="Path"
+                wf-value="this.props.path"
+                wf-oninput="this.pathInput(event)"
+                value=""
+              />
+            </div>
+            <div wf-if="this.error" class="text-red-500 text-sm" hidden="">
+              {{this.error}}
+            </div>
+            <div class="flex gap-2">
+              <button
+                class="px-3 py-1 flex-1 transition-colors border border-neutral-700 hover:border-neutral-400"
+                value="cancel"
+                wf-onmouseleave="this.toggleAnimate(null)"
+                wf-onmouseenter="this.toggleAnimate('cancel')"
+              >
+                Cancel</button
+              ><button
+                value="page"
+                class="px-3 py-1 flex-1 bg-neutral-950 text-neutral-50 hover:bg-neutral-800 transition-colors border border-transparent"
+                wf-class="{{replaces bg-black: !this.error ? 'bg-black' : 'bg-red-700'}}"
+                wf-onmouseleave="this.toggleAnimate(null)"
+                wf-onmouseenter="this.toggleAnimate('ok')"
+              >
+                Blog</button
+              ><button
+                value="page"
+                class="px-3 py-1 flex-1 bg-neutral-950 text-neutral-50 hover:bg-neutral-800 transition-colors border border-transparent"
+                wf-class="{{replaces bg-black: !this.error ? 'bg-black' : 'bg-red-700'}}"
+                wf-onmouseenter="this.toggleAnimate('ok')"
+                wf-onmouseleave="this.toggleAnimate(null)"
+              >
+                Gallery</button
+              ><button
+                value="page"
+                class="px-3 py-1 flex-1 bg-neutral-950 text-neutral-50 hover:bg-neutral-800 transition-colors border border-transparent"
+                wf-class="{{replaces bg-black: !this.error ? 'bg-black' : 'bg-red-700'}}"
+                wf-onmouseenter="this.toggleAnimate('ok')"
+                wf-onmouseleave="this.toggleAnimate(null)"
+              >
+                Page
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
